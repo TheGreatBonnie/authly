@@ -31,6 +31,23 @@ Or install the package in editable mode:
 pip install -e .
 ```
 
+## Documentation
+
+Documentation lives in [`docs/`](docs/index.md), organized into four Diátaxis quadrants:
+
+- Tutorials — [`tutorials/`](docs/tutorials/getting-started.md)
+- How-to guides — [`how-to/`](docs/how-to)
+- Reference — [`reference/`](docs/reference)
+- Explanation — [`explanation/`](docs/explanation)
+
+Runnable SDK examples live in [`examples/`](examples).
+
+Verify documentation integrity (code fences, links, tutorial flow) with:
+
+```bash
+make docs-check
+```
+
 ## Initial product scope
 
 Version `0.1.0` intentionally focuses on a small surface:

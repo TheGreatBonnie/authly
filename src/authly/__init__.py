@@ -3,8 +3,8 @@
 from .client import Authly
 from .errors import (
     AuthenticationError,
-    AuthorizationError,
     AuthlyError,
+    AuthorizationError,
     NotFoundError,
     ValidationError,
 )

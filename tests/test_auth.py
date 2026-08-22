@@ -1,6 +1,6 @@
 import pytest
 
-from authly import Authly, AuthenticationError
+from authly import AuthenticationError, Authly
 
 
 def client():

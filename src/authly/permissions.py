@@ -1,6 +1,6 @@
 """Permission checks."""
 
-from .errors import AuthorizationError, NotFoundError
+from .errors import AuthorizationError
 
 
 class PermissionService:
