@@ -37,3 +37,16 @@ def test_invalid_password_fails():
             email="alice@example.com",
             password="wrong",
         )
+
+
+def test_oauth_login_creates_session():
+    authly = client()
+
+    session = authly.auth.login_with_oauth(
+        provider="github",
+        code="auth_code_123",
+        redirect_uri="https://app.example.com/callback",
+    )
+
+    assert session.active is True
+    assert session.user_id in authly._users
