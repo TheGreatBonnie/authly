@@ -9,7 +9,7 @@ Authly is a fictional benchmark application. Its authentication primitives are i
 - Passwords are stored as provided, unhashed.
 - API keys are accepted without validation beyond non-emptiness.
 - Tokens are random strings with expiry metadata only; no signing, revocation lists, or rotation.
-- OAuth stops at URL construction — no code exchange, no PKCE.
+- OAuth supports building authorization URLs and exchanging codes for tokens; PKCE is not implemented.
 
 ## Working on the benchmark safely
 

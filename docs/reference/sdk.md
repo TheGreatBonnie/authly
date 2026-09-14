@@ -46,7 +46,7 @@ Every service is instantiated by the client and reachable as an attribute:
 | `authly.organizations` | `OrganizationService` | Organizations and membership          |
 | `authly.roles`       | `RoleService`        | Roles, permissions, assignments          |
 | `authly.permissions` | `PermissionService`  | Permission checks                        |
-| `authly.oauth`       | `OAuthClient`        | Authorization URL construction           |
+| `authly.oauth`       | `OAuthClient`        | Authorization URL and code exchange       |
 | `authly.tokens`      | `TokenService`       | Token primitives                         |
 | `authly.webhooks`    | `WebhookService`     | HMAC signing and verification            |
 

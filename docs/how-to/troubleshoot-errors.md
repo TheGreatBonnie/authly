@@ -53,11 +53,11 @@ ValidationError: password is required
 
 **Fix:** see [Configure the client](configure-client.md).
 
-## Symptom: OAuth flow stops after the redirect
+## Symptom: exchanging a code raises `ValidationError`
 
-**Cause:** version 0.1 has no callback handling, authorization-code exchange, or PKCE support. `authorization_url()` is the entire OAuth surface.
+**Cause:** `provider`, `code`, or `redirect_uri` was empty when calling `exchange_code()`.
 
-**Fix:** nothing to fix — the capability is not implemented yet. Track the roadmap in `simulation/roadmap.md`.
+**Fix:** pass all three keyword arguments. Each is required — see [Construct an OAuth authorization URL](oauth-authorization-url.md).
 
 ## Still stuck?
 

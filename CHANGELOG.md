@@ -11,6 +11,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - OAuth authorization-code exchange (`OAuthClient.exchange_code`) with a
   deterministic, per-provider/code identity user.
-- OAuth-backed login path (`AuthService.login_with_oauth`).
 - Input validation for `provider`, `code`, and `redirect_uri` in the OAuth
   exchange.

@@ -86,8 +86,9 @@ A successful login also stores a new session via `SessionService`.
 | Method | Signature | Returns | Raises |
 | ------ | --------- | ------- | ------ |
 | `authorization_url` | `(*, provider: str, redirect_uri: str, state: str)` | `str` | — |
+| `exchange_code` | `(*, provider: str, code: str, redirect_uri: str)` | `Token` | `ValidationError` when `provider`, `code`, or `redirect_uri` is empty |
 
-Builds `https://auth.example.test/oauth/authorize?...` with `client_id` set to `project_id` and `response_type=code`. No token exchange or PKCE in 0.1.
+`authorization_url` builds `https://auth.example.test/oauth/authorize?...` with `client_id` set to `project_id` and `response_type=code`. `exchange_code` creates a deterministic identity user per provider/code and returns a new access token. PKCE is not implemented in 0.1.
 
 ## TokenService
 
