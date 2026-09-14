@@ -13,3 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   deterministic, per-provider/code identity user.
 - Input validation for `provider`, `code`, and `redirect_uri` in the OAuth
   exchange.
+
+## References
+
+- `CHANGELOG.md`
+- `https://github.com/TheGreatBonnie/authly/pull/41`
