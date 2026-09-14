@@ -141,6 +141,6 @@ Checking a permission that none of Alice's roles contain raises `AuthorizationEr
 
 ## Next steps
 
-- Configure the client in your own project: [Configure the client](../how-to/configure-client.md)
-- Handle login failures deliberately: [Authenticate a user](../how-to/authenticate-user.md)
+- Configure the client in your own project: [Authentication](../how-to/authentication.md)
+- Manage roles and permissions: [Authorization](../how-to/authorization.md)
 - Browse every available method: [API reference](../reference/api.md)

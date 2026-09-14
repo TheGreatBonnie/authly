@@ -1,14 +1,79 @@
 # API reference
 
-Complete method inventory for every service exposed by the `Authly` client. All keyword-only arguments are marked with `*`. Object shapes are documented in [Data models](data-models.md); exceptions in [Errors](errors.md).
+Complete reference for the Authly SDK: installation, client construction, every service method, the returned data models, the error catalog, and the CLI.
 
-## Authly
+## SDK overview
 
-```text
-Authly(*, project_id: str, api_key: str)
+Authly ships as a single Python package, `authly`, requiring Python 3.11 or newer. It is an in-memory SDK: all state lives on the client instance and disappears when the process exits. The client is deliberately not an HTTP client; there is no network I/O.
+
+### Installation
+
+```bash
+pip install -e .
 ```
 
+or, from the repository root:
+
+```bash
+uv sync
+```
+
+The installed version is available as `authly.__version__` (`0.1.0`).
+
+## Client constructor
+
+`Authly(*, project_id: str, api_key: str)`
+
 Creates the client and all service namespaces. Raises `ValueError` if either argument is empty.
+
+```python
+from authly import Authly
+
+authly = Authly(
+    project_id="proj_demo",
+    api_key="demo_key",
+)
+```
+
+| Parameter    | Type | Required | Notes                                        |
+| ------------ | ---- | -------- | -------------------------------------------- |
+| `project_id` | str  | yes      | Empty value raises `ValueError`.             |
+| `api_key`    | str  | yes      | Empty value raises `ValueError`.             |
+
+Both parameters are keyword-only.
+
+## Service namespaces
+
+Every service is instantiated by the client and reachable as an attribute:
+
+| Attribute            | Service              | Purpose                                  |
+| -------------------- | -------------------- | ---------------------------------------- |
+| `authly.users`       | `UserService`        | Create and look up users                 |
+| `authly.auth`        | `AuthService`        | Password login                           |
+| `authly.sessions`    | `SessionService`     | Create, get, revoke sessions             |
+| `authly.organizations` | `OrganizationService` | Organizations and membership          |
+| `authly.roles`       | `RoleService`        | Roles, permissions, assignments          |
+| `authly.permissions` | `PermissionService`  | Permission checks                        |
+| `authly.oauth`       | `OAuthClient`        | Authorization URL construction           |
+| `authly.tokens`      | `TokenService`       | Token primitives                         |
+| `authly.webhooks`    | `WebhookService`     | HMAC signing and verification            |
+
+## Top-level exports
+
+```python
+from authly import (
+    Authly,
+    AuthlyError,
+    AuthenticationError,
+    AuthorizationError,
+    NotFoundError,
+    ValidationError,
+    OAuthClient,
+    Token,
+)
+```
+
+`AuthlyError` and its subclasses are described in [Troubleshoot errors](../how-to/troubleshooting.md).
 
 ## UserService
 
@@ -42,7 +107,7 @@ A successful login also stores a new session via `SessionService`.
 | `get` | `(session_id: str)` | `Session` | `NotFoundError` for unknown ID |
 | `revoke` | `(session_id: str)` | `Session` | `NotFoundError` for unknown ID |
 
-`revoke()` sets `active = False`.
+`revoke()` sets `active = False`. There is no `list()`.
 
 ## OrganizationService
 
@@ -68,7 +133,7 @@ A successful login also stores a new session via `SessionService`.
 
 `assign()` adds the user ID to the role's `assignments` set.
 
-## PermissionService
+## PermissionService { #permissionservice }
 
 `authly.permissions`
 
@@ -110,3 +175,122 @@ Expiry compares `expires_at` against the current UTC time.
 | `verify` | `(*, payload: dict, signature: str, secret: str)` | `bool` | — |
 
 HMAC-SHA256 over canonical JSON (sorted keys, compact separators). `verify()` uses a constant-time comparison.
+
+## Data models
+
+Services return dataclass instances. All use `slots=True`, expose plain attributes, and carry generated IDs with type-specific prefixes.
+
+### ID prefixes
+
+| Prefix  | Resource      | Format                |
+| ------- | ------------- | --------------------- |
+| `usr_`  | User          | prefix + 10 hex chars |
+| `sess_` | Session       | prefix + 10 hex chars |
+| `org_`  | Organization  | prefix + 10 hex chars |
+| `role_` | Role          | prefix + 10 hex chars |
+| `tok_`  | Token         | prefix + 10 hex chars |
+
+### User
+
+Returned by `users.create()`, `users.get()`, `users.list()`.
+
+| Field       | Type | Notes                                    |
+| ----------- | ---- | ---------------------------------------- |
+| `id`        | str  | `usr_...`                                |
+| `email`     | str  | Validated at creation; may be duplicated across users |
+| `name`      | str  | Display name                             |
+| `password`  | str  | Stored as provided — benchmark simplification, see [Concepts](../explanation/concepts.md) |
+
+### Session { #session }
+
+Returned by `auth.login()`, `sessions.create()`, `sessions.get()`, `sessions.revoke()`.
+
+| Field        | Type       | Notes                          |
+| ------------ | ---------- | ------------------------------ |
+| `id`         | str        | `sess_...`                     |
+| `user_id`    | str        | Owning user                    |
+| `created_at` | datetime   | UTC timestamp                  |
+| `active`     | bool       | Defaults to `True`; `revoke()` sets it to `False` |
+
+### Organization { #organization }
+
+Returned by `organizations.create()`, `organizations.add_member()`, `organizations.get()`.
+
+| Field         | Type      | Notes                                     |
+| ------------- | --------- | ----------------------------------------- |
+| `id`          | str       | `org_...`                                 |
+| `name`        | str       | Organization name                         |
+| `member_ids`  | set[str]  | User IDs; mutated in place by `add_member()` |
+
+### Role { #role }
+
+Returned by `roles.create()`, `roles.assign()`, `roles.get()`.
+
+| Field          | Type      | Notes                                        |
+| -------------- | --------- | -------------------------------------------- |
+| `id`           | str       | `role_...`                                   |
+| `name`         | str       | Role name; not used for lookups              |
+| `permissions`  | set[str]  | Permission strings such as `documents:write` |
+| `assignments`  | set[str]  | User IDs the role is assigned to             |
+
+Because `permissions` and `assignments` are sets, duplicate inserts are no-ops and membership tests are O(1).
+
+### Token
+
+Returned by `tokens.create()`; accepted by `tokens.is_expired()`.
+
+| Field         | Type       | Notes                                  |
+| ------------- | ---------- | -------------------------------------- |
+| `id`          | str        | `tok_...`                              |
+| `user_id`     | str        | Owning user                            |
+| `value`       | str        | URL-safe random token string           |
+| `expires_at`  | datetime   | UTC; creation time plus `expires_in_seconds` |
+| `token_type`  | str        | Always `"access"`                      |
+
+`Token` is exported at the package root (`from authly import Token`); the other models are not.
+
+## CLI
+
+Installing the package registers an `authly` console script (see `[project.scripts]` in `pyproject.toml`). The CLI is intentionally minimal in version 0.1 and performs no network or state operations.
+
+### `authly login`
+
+Authenticate a local project session:
+
+```bash
+authly login --project proj_demo
+```
+
+Output:
+
+```text
+Authenticated local CLI session for proj_demo
+```
+
+`--project` is required; omitting it prints an argparse error and exits with status 2.
+
+### `authly user list`
+
+```bash
+authly user list
+```
+
+Output:
+
+```text
+The benchmark CLI does not connect to a remote API yet.
+```
+
+The command always prints this placeholder regardless of arguments.
+
+### No command
+
+Running `authly` with no subcommand prints the help text:
+
+```text
+usage: authly [-h] {login,user} ...
+```
+
+### Exit codes
+
+The CLI uses argparse defaults: `0` on success, `2` on usage errors. It never reads or mutates SDK state.

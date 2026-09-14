@@ -16,30 +16,19 @@ Learning-oriented lessons. Start here if you are new to Authly.
 
 Problem-oriented recipes. Use these when you know what you want to do.
 
-- [Configure the client](how-to/configure-client.md)
-- [Authenticate a user](how-to/authenticate-user.md)
-- [Construct an OAuth authorization URL](how-to/oauth-authorization-url.md)
-- [Create and revoke sessions](how-to/manage-sessions.md)
-- [Manage organizations and members](how-to/manage-organizations.md)
-- [Create and assign roles](how-to/create-assign-roles.md)
-- [Check user permissions](how-to/check-permissions.md)
-- [Sign and verify webhook payloads](how-to/sign-webhooks.md)
-- [Troubleshoot errors](how-to/troubleshoot-errors.md)
+- [Authentication](how-to/authentication.md) — configure the client, log a user in, manage sessions, and construct an OAuth authorization URL.
+- [Authorization](how-to/authorization.md) — manage organizations, create and assign roles, and check user permissions.
+- [Sign and verify webhook payloads](how-to/webhooks.md)
+- [Troubleshoot errors](how-to/troubleshooting.md) — work through error symptoms and recover.
 
 ## Reference
 
 Information-oriented descriptions of the machinery.
 
-- [SDK overview](reference/sdk.md)
-- [API reference](reference/api.md)
-- [Errors](reference/errors.md)
-- [Data models](reference/data-models.md)
-- [CLI](reference/cli.md)
+- [API reference](reference/api.md) — SDK overview, complete method inventory, data models, and CLI.
 
 ## Explanation
 
 Understanding-oriented discussion of concepts and design decisions.
 
-- [Authorization model](explanation/authorization-model.md)
-- [Security notes](explanation/security.md)
-- [FAQ](explanation/faq.md)
+- [Concepts](explanation/concepts.md) — the authorization model, the security posture, and FAQ.
