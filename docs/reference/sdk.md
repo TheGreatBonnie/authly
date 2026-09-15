@@ -1,74 +1,79 @@
-# SDK overview
-
-Authly ships as a single Python package, `authly`, requiring Python 3.11 or newer. It is an in-memory SDK: all state lives on the client instance and disappears when the process exits.
+# SDK reference
 
 ## Installation
 
 ```bash
-pip install -e .
+pip install authly
 ```
 
-or, from the repository root:
-
-```bash
-uv sync
-```
-
-The installed version is available as `authly.__version__` (`0.1.0`).
-
-## Client constructor
+## Quick start
 
 ```python
 from authly import Authly
 
-authly = Authly(
-    project_id="proj_demo",
-    api_key="demo_key",
+authly = Authly(project_id="proj_123", api_key="key_456")
+
+# Create a user
+user = authly.users.create(
+    email="alice@example.com",
+    name="Alice",
+    password="secret123",
 )
+
+# Log in
+token = authly.auth.login(
+    email="alice@example.com",
+    password="secret123",
+)
+
+print(token.access_token)
 ```
 
-| Parameter    | Type | Required | Notes                                        |
-| ------------ | ---- | -------- | -------------------------------------------- |
-| `project_id` | str  | yes      | Empty value raises `ValueError`.             |
-| `api_key`    | str  | yes      | Empty value raises `ValueError`.             |
-
-Both parameters are keyword-only.
-
-## Service namespaces
+## Services
 
 Every service is instantiated by the client and reachable as an attribute:
 
-| Attribute            | Service              | Purpose                                  |
-| -------------------- | -------------------- | ---------------------------------------- |
-| `authly.users`       | `UserService`        | Create and look up users                 |
-| `authly.auth`        | `AuthService`        | Password login                           |
-| `authly.sessions`    | `SessionService`     | Create, get, revoke sessions             |
-| `authly.organizations` | `OrganizationService` | Organizations and membership          |
-| `authly.roles`       | `RoleService`        | Roles, permissions, assignments          |
-| `authly.permissions` | `PermissionService`  | Permission checks                        |
-| `authly.oauth`       | `OAuthClient`        | Authorization URL and code exchange       |
-| `authly.tokens`      | `TokenService`       | Token primitives                         |
-| `authly.webhooks`    | `WebhookService`     | HMAC signing and verification            |
+| Attribute | Service | Purpose |
+|-----------|---------|---------|
+| `authly.users` | `UserService` | Create and manage users |
+| `authly.sessions` | `SessionService` | Session lifecycle |
+| `authly.auth` | `AuthService` | Login and token issuance |
+| `authly.organizations` | `OrganizationService` | Organizations and membership |
+| `authly.roles` | `RoleService` | Roles, permissions, assignments |
+| `authly.permissions` | `PermissionService` | Permission checks |
+| `authly.oauth` | `OAuthClient` | Authorization URL and code exchange |
+| `authly.tokens` | `TokenService` | Token primitives |
+| `authly.webhooks` | `WebhookService` | HMAC signing and verification |
 
-Method-level detail: [API reference](api.md). Returned object shapes: [Data models](data-models.md).
+## OAuth
 
-## Top-level exports
+The `OAuthClient` provides OAuth 2.0 authorization code flow support:
+
+### Build authorization URL
 
 ```python
-from authly import (
-    Authly,
-    AuthlyError,
-    AuthenticationError,
-    AuthorizationError,
-    NotFoundError,
-    ValidationError,
-    OAuthClient,
-    Token,
+url = authly.oauth.authorization_url(
+    provider="github",
+    redirect_uri="https://example.com/callback",
+    state="random-state",
 )
 ```
 
-## Design notes
+### Exchange authorization code
 
-- The client is deliberately not an HTTP client; there is no network I/O.
-- The in-memory store keeps the benchmark deterministic and easy to test.
-- The CLI entry point `authly` is registered on install — see [CLI](cli.md).
+```python
+token = authly.oauth.exchange_code(
+    provider="github",
+    code="code-from-callback",
+    redirect_uri="https://example.com/callback",
+)
+```
+
+See [Construct an OAuth authorization URL](../how-to/oauth-authorization-url.md) for details on the deterministic identity creation process.
+
+## References
+
+- `docs/reference/sdk.md`
+- `docs/how-to/oauth-authorization-url.md`
+- `docs/reference/api.md`
+- `https://github.com/TheGreatBonnie/authly/pull/43`

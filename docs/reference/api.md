@@ -1,113 +1,183 @@
 # API reference
 
-Complete method inventory for every service exposed by the `Authly` client. All keyword-only arguments are marked with `*`. Object shapes are documented in [Data models](data-models.md); exceptions in [Errors](errors.md).
+## Authly client
 
-## Authly
+The `Authly` class is the entry point for the SDK.
 
-```text
-Authly(*, project_id: str, api_key: str)
+### Constructor
+
+```python
+Authly(project_id: str, api_key: str)
 ```
 
-Creates the client and all service namespaces. Raises `ValueError` if either argument is empty.
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `project_id` | `str` | Your Authly project identifier |
+| `api_key` | `str` | API key for authentication |
+
+### Attributes
+
+| Attribute | Type | Description |
+|-----------|------|-------------|
+| `users` | `UserService` | User management |
+| `sessions` | `SessionService` | Session management |
+| `oauth` | `OAuthClient` | OAuth authorization URL and code exchange |
+| `tokens` | `TokenService` | Token creation and validation |
+| `organizations` | `OrganizationService` | Organization management |
+| `roles` | `RoleService` | Role management |
+| `permissions` | `PermissionService` | Permission checks |
+| `webhooks` | `WebhookService` | Webhook signature verification |
 
 ## UserService
 
-`authly.users`
+### Methods
 
 | Method | Signature | Returns | Raises |
-| ------ | --------- | ------- | ------ |
-| `create` | `(*, email: str, name: str, password: str)` | `User` | `ValidationError` if email is empty or lacks `@`, or password is empty |
-| `get` | `(user_id: str)` | `User` | `NotFoundError` for unknown ID |
+|--------|-----------|---------|--------|
+| `create` | `(*, email: str, name: str, password: str)` | `User` | `ValidationError` when fields are empty |
+| `get` | `(user_id: str)` | `User` | `NotFoundError` when user does not exist |
 | `list` | `()` | `list[User]` | — |
-
-Duplicate emails are permitted; only the first matching user is found at login.
-
-## AuthService
-
-`authly.auth`
-
-| Method | Signature | Returns | Raises |
-| ------ | --------- | ------- | ------ |
-| `login` | `(*, email: str, password: str)` | `Session` | `AuthenticationError` when email/password do not match |
-
-A successful login also stores a new session via `SessionService`.
 
 ## SessionService
 
-`authly.sessions`
+### Methods
 
 | Method | Signature | Returns | Raises |
-| ------ | --------- | ------- | ------ |
-| `create` | `(*, user_id: str)` | `Session` | — |
-| `get` | `(session_id: str)` | `Session` | `NotFoundError` for unknown ID |
-| `revoke` | `(session_id: str)` | `Session` | `NotFoundError` for unknown ID |
+|--------|-----------|---------|--------|
+| `create` | `(*, user_id: str)` | `Session` | `NotFoundError` when user does not exist |
+| `get` | `(session_id: str)` | `Session` | `NotFoundError` when session does not exist |
+| `revoke` | `(session_id: str)` | `None` | `NotFoundError` when session does not exist |
 
-`revoke()` sets `active = False`.
+## AuthService
 
-## OrganizationService
-
-`authly.organizations`
+### Methods
 
 | Method | Signature | Returns | Raises |
-| ------ | --------- | ------- | ------ |
-| `create` | `(*, name: str)` | `Organization` | — |
-| `add_member` | `(*, organization_id: str, user_id: str)` | `Organization` | `NotFoundError` for unknown organization ID |
-| `get` | `(organization_id: str)` | `Organization` | `NotFoundError` for unknown ID |
+|--------|-----------|---------|--------|
+| `login` | `(*, email: str, password: str)` | `Token` | `AuthenticationError` when credentials are invalid |
 
-`add_member()` does not verify that the user exists.
+A successful login also stores a new session via `SessionService`.
 
-## RoleService
-
-`authly.roles`
-
-| Method | Signature | Returns | Raises |
-| ------ | --------- | ------- | ------ |
-| `create` | `(*, name: str, permissions: set[str] \| None = None)` | `Role` | — |
-| `assign` | `(*, user_id: str, role_id: str)` | `Role` | `NotFoundError` for unknown role ID |
-| `get` | `(role_id: str)` | `Role` | `NotFoundError` for unknown ID |
-
-`assign()` adds the user ID to the role's `assignments` set.
-
-## PermissionService
-
-`authly.permissions`
-
-| Method | Signature | Returns | Raises |
-| ------ | --------- | ------- | ------ |
-| `check` | `(*, user_id: str, permission: str)` | `bool` | `AuthorizationError` when no assigned role contains the permission |
-| `list_for_user` | `(*, user_id: str)` | `set[str]` | — |
-
-`check()` returns `True` or raises; it never returns `False`. Unknown users raise because they hold no roles. `list_for_user()` never raises and returns an empty set for unknown users.
-
-## OAuthClient { #oauthclient }
-
-`authly.oauth`
+## OAuthClient
 
 | Method | Signature | Returns | Raises |
 | ------ | --------- | ------- | ------ |
 | `authorization_url` | `(*, provider: str, redirect_uri: str, state: str)` | `str` | — |
 | `exchange_code` | `(*, provider: str, code: str, redirect_uri: str)` | `Token` | `ValidationError` when `provider`, `code`, or `redirect_uri` is empty |
 
-`authorization_url` builds `https://auth.example.test/oauth/authorize?...` with `client_id` set to `project_id` and `response_type=code`. `exchange_code` creates a deterministic identity user per provider/code and returns a new access token. PKCE is not implemented in 0.1.
+`authorization_url` builds `https://auth.example.test/oauth/authorize?...` with `client_id` set to `project_id` and `response_type=code`.
+
+`exchange_code` exchanges an OAuth authorization code for an access token. It creates a deterministic identity user per `provider`/`code` pair and returns a new access token. The implementation:
+
+- Computes a SHA256 digest of the authorization code (first 12 characters) — the raw code is never stored
+- Creates an identity email in the format `{provider}:{digest}@oauth.example.test`
+- Reuses existing users with matching emails or creates new ones with a random password
+- Returns a fresh `Token` for the identity user
+
+PKCE is not implemented in 0.1.
 
 ## TokenService
 
-`authly.tokens`
+### Methods
 
 | Method | Signature | Returns | Raises |
-| ------ | --------- | ------- | ------ |
-| `create` | `(*, user_id: str, expires_in_seconds: int = 3600)` | `Token` | — |
-| `is_expired` | `(token: Token)` | `bool` | — |
+|--------|-----------|---------|--------|
+| `create` | `(*, user_id: str)` | `Token` | `NotFoundError` when user does not exist |
+| `validate` | `(token: str)` | `Token` | `AuthenticationError` when token is invalid or expired |
 
-Expiry compares `expires_at` against the current UTC time.
+## OrganizationService
 
-## WebhookService { #webhookservice }
-
-`authly.webhooks` — both methods are static and callable on the class.
+### Methods
 
 | Method | Signature | Returns | Raises |
-| ------ | --------- | ------- | ------ |
-| `sign` | `(*, payload: dict, secret: str)` | `str` | — |
-| `verify` | `(*, payload: dict, signature: str, secret: str)` | `bool` | — |
+|--------|-----------|---------|--------|
+| `create` | `(*, name: str)` | `Organization` | `ValidationError` when name is empty |
+| `get` | `(org_id: str)` | `Organization` | `NotFoundError` when organization does not exist |
+| `add_member` | `(org_id: str, user_id: str)` | `None` | `NotFoundError` when organization or user does not exist |
 
-HMAC-SHA256 over canonical JSON (sorted keys, compact separators). `verify()` uses a constant-time comparison.
+## RoleService
+
+### Methods
+
+| Method | Signature | Returns | Raises |
+|--------|-----------|---------|--------|
+| `create` | `(*, name: str, permissions: list[str])` | `Role` | `ValidationError` when name is empty |
+| `get` | `(role_id: str)` | `Role` | `NotFoundError` when role does not exist |
+| `assign` | `(user_id: str, role_id: str)` | `None` | `NotFoundError` when user or role does not exist |
+
+## PermissionService
+
+### Methods
+
+| Method | Signature | Returns | Raises |
+|--------|-----------|---------|--------|
+| `check` | `(*, user_id: str, permission: str)` | `bool` | `NotFoundError` when user does not exist |
+
+## WebhookService
+
+### Methods
+
+| Method | Signature | Returns | Raises |
+|--------|-----------|---------|--------|
+| `sign` | `(*, payload: bytes, secret: str)` | `str` | — |
+| `verify` | `(*, payload: bytes, signature: str, secret: str)` | `bool` | — |
+
+## Data models
+
+### User
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | `str` | Unique identifier |
+| `email` | `str` | Email address |
+| `name` | `str` | Display name |
+| `password` | `str` | Password (stored unhashed) |
+
+### Session
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | `str` | Unique identifier |
+| `user_id` | `str` | Associated user ID |
+| `created_at` | `datetime` | Creation timestamp |
+| `expires_at` | `datetime` | Expiration timestamp |
+
+### Token
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `access_token` | `str` | The token string |
+| `token_type` | `str` | Always `"access"` |
+| `user_id` | `str` | Associated user ID |
+| `expires_at` | `datetime` | Expiration timestamp |
+
+### Organization
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | `str` | Unique identifier |
+| `name` | `str` | Organization name |
+| `members` | `list[str]` | List of user IDs |
+
+### Role
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | `str` | Unique identifier |
+| `name` | `str` | Role name |
+| `permissions` | `list[str]` | List of permission strings |
+
+## Exceptions
+
+| Exception | Description |
+|-----------|-------------|
+| `ValidationError` | Raised when input validation fails |
+| `AuthenticationError` | Raised when authentication fails |
+| `NotFoundError` | Raised when a requested resource does not exist |
+
+## References
+
+- `docs/reference/api.md`
+- `docs/how-to/oauth-authorization-url.md`
+- `src/authly/oauth.py`
+- `https://github.com/TheGreatBonnie/authly/pull/43`

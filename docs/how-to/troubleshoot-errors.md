@@ -1,55 +1,46 @@
 # Troubleshoot errors
 
-Work through the symptom you are seeing to find the cause and fix.
+Common error symptoms and how to recover from them.
 
-## Symptom: login fails with `AuthenticationError`
+## Symptom: `ValidationError: email is required`
 
-**Cause:** no registered user matches the email, or the password is wrong. The message is always `invalid email or password` and never says which part failed.
+**Cause:** `UserService.create()` received an empty email.
 
-**Fix:** confirm the email exists via `authly.users.list()` and retry with that user's password. Remember that only the *first* user created with a given email can match a login.
+**Fix:** pass a non-empty string for `email`.
 
-```python
-from authly import AuthenticationError
+## Symptom: `ValidationError: name is required`
 
-try:
-    authly.auth.login(email="alice@example.com", password="secret")
-except AuthenticationError:
-    ...
-```
+**Cause:** `UserService.create()` received an empty name.
 
-## Symptom: permission check raises `AuthorizationError`
+**Fix:** pass a non-empty string for `name`.
 
-**Cause:** none of the roles assigned to the user contains the requested permission string. Permission names must match exactly (`documents:write` ≠ `documents:Write`).
+## Symptom: `ValidationError: password is required`
 
-**Fix:** inspect what the user actually holds, then assign a missing role or extend an existing one:
+**Cause:** `UserService.create()` received an empty password.
 
-```python
-held = authly.permissions.list_for_user(user_id=user.id)
-print(sorted(held))
-```
+**Fix:** pass a non-empty string for `password`.
 
-Note: this error also appears for unknown user IDs, because an unknown user has no assigned roles.
+## Symptom: `NotFoundError` when getting a user
 
-## Symptom: lookup raises `NotFoundError`
+**Cause:** the user ID does not exist.
 
-**Cause:** the ID passed to `users.get()`, `sessions.get()`, `sessions.revoke()`, `organizations.get()`, or `roles.get()` does not exist. IDs are generated per client instance and prefixed by type (`usr_`, `sess_`, `org_`, `role_`, `tok_`).
+**Fix:** check the ID or create the user first.
 
-**Fix:** use the object returned when it was created, or check your prefix matches the resource type. All state is in-memory — objects created in another process (or before a restart) are gone.
+## Symptom: `AuthenticationError` on login
 
-## Symptom: creating a user raises `ValidationError`
+**Cause:** email or password does not match.
 
-**Cause:** the email is empty or contains no `@`, or the password is empty.
+**Fix:** verify credentials or create the user.
 
-**Fix:** pass a syntactically valid email and a non-empty password.
+## Symptom: `ValidationError: project_id is required`
 
-```text
-ValidationError: a valid email is required
-ValidationError: password is required
-```
+**Cause:** `Authly` was initialized without a `project_id`.
 
-## Symptom: initializing the client raises `ValueError`
+**Fix:** see [Configure the client](configure-client.md).
 
-**Cause:** `project_id` or `api_key` was omitted or empty.
+## Symptom: `ValidationError: api_key is required`
+
+**Cause:** `Authly` was initialized without an `api_key`.
 
 **Fix:** see [Configure the client](configure-client.md).
 
@@ -61,4 +52,15 @@ ValidationError: password is required
 
 ## Still stuck?
 
-Check the full [Errors reference](../reference/errors.md), or ask on the benchmark's issue tracker.
+Open an issue with:
+
+1. The full error message and traceback.
+2. The code that triggered it (redact credentials).
+3. What you expected to happen.
+
+## References
+
+- `docs/how-to/troubleshoot-errors.md`
+- `docs/how-to/oauth-authorization-url.md`
+- `src/authly/oauth.py`
+- `https://github.com/TheGreatBonnie/authly/pull/43`
