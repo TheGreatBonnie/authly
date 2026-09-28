@@ -31,3 +31,9 @@ Benchmark simplification, by design. Real password hashing would add complexity 
 ## Where do I report issues?
 
 Authly exists to exercise documentation workflows; its issue tracker lives at `simulation/github/issues/` within this repository.
+
+## References
+
+- docs/explanation/faq.md
+- docs/how-to/oauth-authorization-url.md
+- simulation/roadmap.md

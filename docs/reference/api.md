@@ -29,8 +29,9 @@ Duplicate emails are permitted; only the first matching user is found at login.
 | Method | Signature | Returns | Raises |
 | ------ | --------- | ------- | ------ |
 | `login` | `(*, email: str, password: str)` | `Session` | `AuthenticationError` when email/password do not match |
+| `login_with_oauth` | `(*, provider: str, code: str, redirect_uri: str)` | `Session` | `AuthenticationError` when the OAuth exchange fails or the user is not found |
 
-A successful login also stores a new session via `SessionService`.
+`login_with_oauth()` exchanges an authorization code for an access token with the provider, then creates or retrieves the user and starts a session. A successful login also stores a new session via `SessionService`.
 
 ## SessionService
 
@@ -86,8 +87,11 @@ A successful login also stores a new session via `SessionService`.
 | Method | Signature | Returns | Raises |
 | ------ | --------- | ------- | ------ |
 | `authorization_url` | `(*, provider: str, redirect_uri: str, state: str)` | `str` | — |
+| `exchange_code` | `(*, provider: str, code: str, redirect_uri: str)` | `dict` | `AuthenticationError` when the token exchange fails |
 
-Builds `https://auth.example.test/oauth/authorize?...` with `client_id` set to `project_id` and `response_type=code`. No token exchange or PKCE in 0.1.
+`authorization_url()` builds `https://auth.example.test/oauth/authorize?...` with `client_id` set to `project_id` and `response_type=code`.
+
+`exchange_code()` exchanges an authorization code for an access token with the OAuth provider. Returns a dictionary containing the token response (typically including `access_token`, `token_type`, and `expires_in`). No PKCE in 0.1.
 
 ## TokenService
 
@@ -110,3 +114,9 @@ Expiry compares `expires_at` against the current UTC time.
 | `verify` | `(*, payload: dict, signature: str, secret: str)` | `bool` | — |
 
 HMAC-SHA256 over canonical JSON (sorted keys, compact separators). `verify()` uses a constant-time comparison.
+
+## References
+
+- `docs/reference/api.md`
+- `src/authly/oauth.py`
+- `src/authly/auth.py`

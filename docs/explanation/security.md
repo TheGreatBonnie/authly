@@ -30,3 +30,7 @@ If you are evolving Authly, read `simulation/roadmap.md` first and update the do
 
 - [FAQ](faq.md)
 - [Troubleshoot errors](../how-to/troubleshoot-errors.md)
+
+## References
+
+- docs/explanation/security.md

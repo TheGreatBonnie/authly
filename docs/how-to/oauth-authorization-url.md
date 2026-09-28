@@ -44,11 +44,10 @@ from secrets import token_urlsafe
 state = token_urlsafe(16)
 ```
 
-## Version boundary
+## Version 0.1 scope
 
-Version 0.1 only constructs the URL. There is no callback handling, authorization-code exchange, or PKCE support yet — see [Troubleshoot errors](troubleshoot-errors.md) if you were expecting a token.
+Version 0.1 only constructs the URL. There is no callback handling, authorization-code exchange, or PKCE support yet.
 
-## See also
+## References
 
-- [OAuthClient API](../reference/api.md#oauthclient)
-- [Security notes](../explanation/security.md)
+- docs/how-to/oauth-authorization-url.md
