@@ -85,9 +85,12 @@ A successful login also stores a new session via `SessionService`.
 
 | Method | Signature | Returns | Raises |
 | ------ | --------- | ------- | ------ |
-| `authorization_url` | `(*, provider: str, redirect_uri: str, state: str)` | `str` | — |
+| `authorization_url` | `(*, provider: str, redirect_uri: str, state: str, code_challenge: str \| None = None)` | `str` | — |
+| `exchange_code` | `(*, provider: str, code: str, redirect_uri: str, code_verifier: str \| None = None)` | `TokenResponse` | `AuthenticationError` when the token exchange fails |
 
-Builds `https://auth.example.test/oauth/authorize?...` with `client_id` set to `project_id` and `response_type=code`. No token exchange or PKCE in 0.1.
+`authorization_url()` builds `https://auth.example.test/oauth/authorize?...` with `client_id` set to `project_id` and `response_type=code`. When `code_challenge` is provided, it is included as `code_challenge` with method `S256`.
+
+`exchange_code()` swaps the authorization code for an access token. When PKCE was used during authorization, provide the original `code_verifier` to complete the flow.
 
 ## TokenService
 
@@ -110,3 +113,9 @@ Expiry compares `expires_at` against the current UTC time.
 | `verify` | `(*, payload: dict, signature: str, secret: str)` | `bool` | — |
 
 HMAC-SHA256 over canonical JSON (sorted keys, compact separators). `verify()` uses a constant-time comparison.
+
+## References
+
+- `docs/how-to/oauth-authorization-url.md`
+- `docs/reference/data-models.md`
+- `docs/reference/errors.md`

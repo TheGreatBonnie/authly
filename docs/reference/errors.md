@@ -7,7 +7,8 @@ AuthlyError
 ├── AuthenticationError   login failed
 ├── AuthorizationError    permission check failed
 ├── NotFoundError         unknown resource ID
-└── ValidationError       invalid input at creation time
+├── ValidationError       invalid input at creation time
+└── OAuthError            OAuth flow error
 ```
 
 ## Hierarchy
@@ -19,6 +20,7 @@ AuthlyError
 | `AuthorizationError`   | `permissions.check()`                                                     | No assigned role contains the requested permission             |
 | `NotFoundError`        | `users.get()`, `sessions.get()`, `sessions.revoke()`, `organizations.get()`, `organizations.add_member()`, `roles.get()`, `roles.assign()` | Resource ID does not exist |
 | `ValidationError`      | `users.create()`                                                          | Empty/malformed email or empty password                        |
+| `OAuthError`           | `oauth.get_authorization_url()`, `oauth.handle_callback()`                | OAuth provider error, invalid state, or token exchange failure   |
 
 ## Not raised
 
@@ -34,5 +36,17 @@ AuthlyError
 | `AuthorizationError`  | `user 'usr_...' lacks permission 'documents:write'` |
 | `NotFoundError`       | `user 'usr_...' was not found`                     |
 | `ValidationError`     | `a valid email is required` / `password is required` |
+| `OAuthError`          | `oauth provider error: invalid state parameter` / `token exchange failed` |
+
+## OAuth-specific errors
+
+When working with OAuth providers, `OAuthError` provides additional context:
+
+| Scenario | Error details |
+|----------|---------------|
+| Invalid or expired state parameter | `oauth provider error: invalid state parameter` |
+| Authorization code exchange failure | `token exchange failed` |
+| Missing or invalid provider configuration | `oauth provider error: configuration error` |
+| User denied authorization | `oauth provider error: access denied` |
 
 For recovery strategies per symptom, see [Troubleshoot errors](../how-to/troubleshoot-errors.md).

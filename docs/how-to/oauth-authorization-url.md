@@ -52,3 +52,7 @@ Version 0.1 only constructs the URL. There is no callback handling, authorizatio
 
 - [OAuthClient API](../reference/api.md#oauthclient)
 - [Security notes](../explanation/security.md)
+
+## References
+
+- docs/how-to/oauth-authorization-url.md

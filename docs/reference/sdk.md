@@ -46,7 +46,7 @@ Every service is instantiated by the client and reachable as an attribute:
 | `authly.organizations` | `OrganizationService` | Organizations and membership          |
 | `authly.roles`       | `RoleService`        | Roles, permissions, assignments          |
 | `authly.permissions` | `PermissionService`  | Permission checks                        |
-| `authly.oauth`       | `OAuthClient`        | Authorization URL construction           |
+| `authly.oauth`       | `OAuthClient`        | Authorization URL construction and token exchange |
 | `authly.tokens`      | `TokenService`       | Token primitives                         |
 | `authly.webhooks`    | `WebhookService`     | HMAC signing and verification            |
 
@@ -72,3 +72,9 @@ from authly import (
 - The client is deliberately not an HTTP client; there is no network I/O.
 - The in-memory store keeps the benchmark deterministic and easy to test.
 - The CLI entry point `authly` is registered on install — see [CLI](cli.md).
+
+## References
+
+- `docs/reference/sdk.md`
+- `docs/reference/api.md`
+- `docs/reference/data-models.md`

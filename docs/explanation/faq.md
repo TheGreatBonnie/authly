@@ -6,7 +6,13 @@ No. Authly is a fictional benchmark application for testing Draftly. Do not use 
 
 ## Does Authly support OAuth?
 
-Version 0.1 constructs OAuth authorization URLs only. There is no callback handling, authorization-code exchange, or PKCE support yet. These arrive in later simulated releases (v0.2.0 and v0.3.0 in `simulation/roadmap.md`). See [Construct an OAuth authorization URL](../how-to/oauth-authorization-url.md).
+Yes. Authly supports the full OAuth 2.0 authorization code flow with PKCE:
+
+- Construct authorization URLs with `authly.oauth.get_authorization_url()`
+- Exchange authorization codes for tokens with `authly.oauth.exchange_code()`
+- PKCE support is enabled by default for all authorization requests
+
+See [Construct an OAuth authorization URL](../how-to/oauth-authorization-url.md) and [Exchange OAuth authorization code](../how-to/oauth-exchange-code.md).
 
 ## Does Authly support roles and permissions?
 
@@ -31,3 +37,9 @@ Benchmark simplification, by design. Real password hashing would add complexity 
 ## Where do I report issues?
 
 Authly exists to exercise documentation workflows; its issue tracker lives at `simulation/github/issues/` within this repository.
+
+## References
+
+- `docs/explanation/faq.md`
+- `simulation/scenarios/002_add_oauth_callback.md`
+- `simulation/roadmap.md`
