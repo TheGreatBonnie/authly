@@ -61,3 +61,36 @@ def test_expiry_boundary_counts_current_time_as_expired():
     token.expires_at = datetime.now(timezone.utc) - timedelta(microseconds=1)
 
     assert client.tokens.is_expired(token) is True
+
+
+def test_revoke_marks_token_expired():
+    client = _client()
+    user = client.users.create(email="a@b.co", name="A", password="secret")
+    token = client.tokens.create(user_id=user.id)
+    assert client.tokens.is_expired(token) is False
+
+    client.tokens.revoke(token)
+
+    assert client.tokens.is_expired(token) is True
+
+
+def test_revoke_is_idempotent():
+    client = _client()
+    user = client.users.create(email="a@b.co", name="A", password="secret")
+    token = client.tokens.create(user_id=user.id)
+
+    client.tokens.revoke(token)
+    client.tokens.revoke(token)
+
+    assert client.tokens.is_expired(token) is True
+
+
+def test_revoke_leaves_other_tokens_active():
+    client = _client()
+    user = client.users.create(email="a@b.co", name="A", password="secret")
+    revoked = client.tokens.create(user_id=user.id)
+    kept = client.tokens.create(user_id=user.id)
+
+    client.tokens.revoke(revoked)
+
+    assert client.tokens.is_expired(kept) is False

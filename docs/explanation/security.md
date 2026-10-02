@@ -1,6 +1,28 @@
-# Security notes
+# Security
 
-This page explains Authly's security posture: what the benchmark guarantees, what it deliberately does not, and how to work on it safely.
+Authly is a reference implementation for learning and benchmarking, not a production-grade authentication system. This page explains the security model and its intentional limitations.
+
+## Security model
+
+Authly implements a simplified authentication and authorization system with the following characteristics:
+
+### Authentication
+
+- **Password-based login**: Users authenticate with username and password credentials.
+- **Session management**: Sessions are created upon successful authentication and tracked via session tokens.
+- **API key authentication**: Alternative authentication using API keys for programmatic access.
+- **OAuth 2.0 URL construction**: Support for generating OAuth authorization URLs (without full OAuth flow implementation).
+
+### Authorization
+
+- **Role-based access control (RBAC)**: Permissions are granted through roles assigned to users.
+- **Organization-scoped permissions**: Access controls can be scoped to specific organizations.
+- **Permission checks**: Runtime verification of user permissions before allowing operations.
+
+### Data protection
+
+- **Token-based sessions**: Sessions use random token strings for identification.
+- **Webhook signatures**: Webhook payloads include HMAC-SHA256 signatures for verification.
 
 ## What Authly is not
 
@@ -8,25 +30,22 @@ Authly is a fictional benchmark application. Its authentication primitives are i
 
 - Passwords are stored as provided, unhashed.
 - API keys are accepted without validation beyond non-emptiness.
-- Tokens are random strings with expiry metadata only; no signing, revocation lists, or rotation.
+- Tokens are random strings with expiry metadata only; no signing or rotation.
 - OAuth stops at URL construction — no code exchange, no PKCE.
 
-## Working on the benchmark safely
+## Best practices for production
 
-Even fictional credentials should stay fictional:
+If you are building a production authentication system, consider the following requirements that Authly does not implement:
 
-- Do not commit real credentials anywhere in the repository.
-- Use placeholder values (`proj_demo`, `demo_key`) in examples and tests.
-- Treat webhook secrets as sensitive — examples use `webhook_secret`, nothing more.
-- Never place real passwords in source control, including in test fixtures.
+1. **Password hashing**: Always hash passwords using strong, salted algorithms (e.g., bcrypt, Argon2, PBKDF2).
+2. **Token security**: Use signed tokens (JWT) or encrypted session tokens with secure key management.
+3. **Token lifecycle**: Implement token rotation and short expiration times.
+4. **OAuth compliance**: Implement full OAuth 2.0 flows with PKCE for public clients and state parameter validation.
+5. **Rate limiting**: Add rate limiting to prevent brute-force attacks on authentication endpoints.
+6. **Audit logging**: Log all authentication and authorization events for security monitoring.
+7. **Input validation**: Validate and sanitize all user inputs to prevent injection attacks.
+8. **HTTPS enforcement**: Require TLS for all authentication traffic.
 
-## Authentication changes are documentation events
+## References
 
-In this repository, product changes to authentication are treated as high-impact documentation changes. When a release touches login, tokens, keys, or redirect validation, the affected guides and reference pages need review in the same change. The roadmap stages these deliberately — for example the v0.4.0 API-key deprecation introduces token-based client authentication and requires a migration guide.
-
-If you are evolving Authly, read `simulation/roadmap.md` first and update the docs listed under each release's *Documentation risk* section alongside the code.
-
-## See also
-
-- [FAQ](faq.md)
-- [Troubleshoot errors](../how-to/troubleshoot-errors.md)
+- docs/explanation/security.md

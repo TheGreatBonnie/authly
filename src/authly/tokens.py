@@ -37,3 +37,13 @@ class TokenService:
 
     def is_expired(self, token: Token) -> bool:
         return token.expires_at <= datetime.now(timezone.utc)
+
+    def revoke(self, token: Token) -> None:
+        """Revoke a token immediately.
+
+        Expiry is moved into the past and the token is dropped from the
+        client, so it reads as expired and can no longer be looked up.
+        Revoking an already-revoked token is a no-op rather than an error.
+        """
+        token.expires_at = datetime.now(timezone.utc) - timedelta(microseconds=1)
+        self.client._tokens.pop(token.id, None)
